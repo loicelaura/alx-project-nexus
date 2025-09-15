@@ -9,6 +9,10 @@ const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [sortOption, setSortOption] = useState<string>('default');
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const productsPerPage = 8;
+
   useEffect(() => {
     const getProducts = async () => {
       try {
@@ -46,9 +50,20 @@ const App: React.FC = () => {
     } else if (sortOption  === 'price-desc') {
       sorted.sort((a, b) => b.price - a.price);
     }
+    
+    // Reset to the first page whenever the filters or sorting change
+    setCurrentPage(1);
 
     return sorted;
   }, [allProducts, selectedCategory, sortOption]);
+
+  // Pagination Logic
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = filteredAndSortedProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+
+  const totalPages = Math.ceil(filteredAndSortedProducts.length / productsPerPage);
+  const pageNumbers = Array.from({ length: totalPages } , (_, i) => i + 1);
 
   if (loading) {
     return (
@@ -108,7 +123,7 @@ const App: React.FC = () => {
 
       {/* Product Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredAndSortedProducts.map((product) => (
+        {currentProducts.map((product: Product) => (
           <div key={product.id} className="bg-white border border-gray-200 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
             <img
              src={product.image}
@@ -120,6 +135,25 @@ const App: React.FC = () => {
               <p className="text-green-600 font-extrabold text-xl mt-1">${product.price.toFixed(2)}</p>
              </div>
           </div>
+        ))}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center mt-8 space-x-2">
+        {pageNumbers.map(number => (
+          <button
+          key={number}
+          onClick={() => setCurrentPage(number)}
+          className={`
+            px-4 py-2 rounded-lg font-semibold transition-colors duration-200
+            ${currentPage === number
+              ? 'bg-green-600 text-white shadow-md'
+              : 'bg-gray-200 text-gray-700 hover: bg-gray-300'
+            }
+            `}
+            >
+              {number}
+            </button>
         ))}
       </div>
     </div>
