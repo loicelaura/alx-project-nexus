@@ -1,0 +1,60 @@
+{
+  "groceries":[
+  {
+    "id": "1",
+    "name": "Banana",
+    "category": "fruits",
+    "price": 50,
+    "image": "https://images.unsplash.com/photo-1574226516831-e1dff420e43e?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    "id": "2",
+    "name": "Apple",
+    "category": "fruits",
+    "price": 120,
+    "image": "https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    "id": "3",
+    "name": "Tomato",
+    "category": "vegetables",
+    "price": 80,
+    "image": "https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    "id": "4",
+    "name": "Cabbage",
+    "category": "vegetables",
+    "price": 60,
+    "image": "https://images.unsplash.com/photo-1617196031132-f1d1d820d616?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    "id": "5",
+    "name": "Milk",
+    "category": "dairy",
+    "price": 100,
+    "image": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    "id": "6",
+    "name": "Cheese",
+    "category": "dairy",
+    "price": 200,
+    "image": "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    "id": "7",
+    "name": "Juice",
+    "category": "drinks",
+    "price": 150,
+    "image": "https://images.unsplash.com/photo-1563225400-7a7e9a0da0c2?auto=format&fit=crop&w=400&q=80"
+  },
+  {
+    "id": "8",
+    "name": "Soda",
+    "category": "drinks",
+    "price": 70,
+    "image": "https://images.unsplash.com/photo-1606813900378-0f9e2b4b6937?auto=format&fit=crop&w=400&q=80"
+  }
+]
+}
