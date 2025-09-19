@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState,  } from 'react';
 import HeroSection from './components/HeroSection';
 import CartModal from './components/CartModal';
 import ProductList from './components/ProductList';
+import FeaturedProducts from './components/FeaturedProducts';
 import type { Product } from './types';
 
 const App = () => {
@@ -11,12 +12,17 @@ const App = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<Product[]>([]);
   const [showCart, setShowCart] = useState(false);
+  
 
   // Filter & sort states
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortOption, setSortOption] = useState<string>('');
 
-  //  State for the new product form
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 8;
+
+  // State for the new product form
   const [newProduct, setNewProduct] = useState({
     name: '',
     category: '',
@@ -24,7 +30,7 @@ const App = () => {
     image: '',
   });
 
-  //  Handler for form input changes
+  // Handler for form input changes
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewProduct((prevProduct) => ({ ...prevProduct, [name]: value }));
@@ -34,7 +40,6 @@ const App = () => {
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      // Create a new product object with the price converted to a number
       const productToAdd = {
         ...newProduct,
         price: parseInt(newProduct.price),
@@ -53,16 +58,14 @@ const App = () => {
       }
 
       const addedProduct = await res.json();
-      // Update the product list to include the newly added item
       setProducts((prevProducts) => [...prevProducts, addedProduct]);
-      // Reset the form fields
       setNewProduct({ name: '', category: '', price: '', image: '' });
     } catch (error) {
       console.error('Error adding product:', error);
     }
   };
 
-  // Fetch products from JSON API
+  // Fetch all products on mount
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -81,27 +84,31 @@ const App = () => {
     setCart((prevCart) => [...prevCart, product]);
   };
 
-  // Filtered products
-  const filteredProducts = products.filter((product) =>
+  // --- Filtering, sorting, pagination logic ---
+  const featuredProducts = products.filter((product) => product.isFeatured);
+
+  const nonFeaturedProducts = products.filter((product) => !product.isFeatured);
+  const filteredProducts = nonFeaturedProducts.filter((product) =>
     categoryFilter === 'all' ? true : product.category === categoryFilter
   );
 
-  // Sorted products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     if (sortOption === 'priceLowHigh') return a.price - b.price;
     if (sortOption === 'priceHighLow') return b.price - a.price;
     return 0;
   });
 
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = sortedProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
+
   return (
     <div className="bg-gray-100 min-h-screen font-sans">
       {/* Header */}
       <header className="bg-white shadow-md p-4 flex justify-between items-center rounded-b-3xl">
         <h1 className="text-xl font-bold text-gray-800">Fresh Groceries</h1>
-        <div
-          className="relative cursor-pointer"
-          onClick={() => setShowCart(true)}
-        >
+        <div className="relative cursor-pointer" onClick={() => setShowCart(true)}>
           🛒 {cart.length}
         </div>
       </header>
@@ -109,14 +116,14 @@ const App = () => {
       {/* Hero */}
       <HeroSection heroImageUrl={heroImageUrl} />
 
+      {/* Featured Products */}
+      <FeaturedProducts products={featuredProducts} onAddToCart={handleAddToCart} />
+
       {/* Filters */}
       <div className="flex justify-between items-center p-4">
         <div>
-          <label className="mr-2">Category:</label>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-          >
+          <label className="mt-2">Category:</label>
+          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
             <option value="all">All</option>
             <option value="fruits">Fruits</option>
             <option value="vegetables">Vegetables</option>
@@ -127,10 +134,7 @@ const App = () => {
 
         <div>
           <label className="mr-2">Sort By:</label>
-          <select
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-          >
+          <select value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
             <option value="">Default</option>
             <option value="priceLowHigh">Price: Low → High</option>
             <option value="priceHighLow">Price: High → Low</option>
@@ -191,7 +195,22 @@ const App = () => {
       </form>
 
       {/* Product List */}
-      <ProductList products={sortedProducts} onAddToCart={handleAddToCart} />
+      <ProductList products={currentProducts} onAddToCart={handleAddToCart} />
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center mt-8">
+        {[...Array(totalPages)].map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentPage(index + 1)}
+            className={`mx-1 px-4 py-2 border rounded-lg ${
+              currentPage === index + 1 ? 'bg-green-500 text-white' : 'bg-white'
+            }`}
+          >
+            {index + 1}
+          </button>
+        ))}
+      </div>
 
       {/* Cart Modal */}
       {showCart && <CartModal cart={cart} onClose={() => setShowCart(false)} />}
