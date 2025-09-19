@@ -1,4 +1,4 @@
-import { useEffect, useState,  } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import HeroSection from './components/HeroSection';
 import CartModal from './components/CartModal';
 import ProductList from './components/ProductList';
@@ -12,15 +12,17 @@ const App = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<Product[]>([]);
   const [showCart, setShowCart] = useState(false);
-  
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
 
   // Filter & sort states
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortOption, setSortOption] = useState<string>('');
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
+  // Infinite scrolling setup
   const productsPerPage = 8;
+  const observer = useRef<IntersectionObserver>();
 
   // State for the new product form
   const [newProduct, setNewProduct] = useState({
@@ -64,30 +66,57 @@ const App = () => {
       console.error('Error adding product:', error);
     }
   };
-
-  // Fetch all products on mount
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch('http://localhost:5000/groceries');
-        const data: Product[] = await res.json();
-        setProducts(data);
-      } catch (error) {
-        console.log('Error fetching products:', error);
-      }
-    };
-    fetchProducts();
-  }, []);
-
-  // Handle add to cart
   const handleAddToCart = (product: Product) => {
     setCart((prevCart) => [...prevCart, product]);
   };
 
-  // --- Filtering, sorting, pagination logic ---
-  const featuredProducts = products.filter((product) => product.isFeatured);
+  // Fetch products with pagination
+  const fetchProducts = async () => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `http://localhost:5000/groceries?_page=${page}&_limit=${productsPerPage}`
+      );
+      const data: Product[] = await res.json();
+      setProducts((prevProducts) => [...prevProducts, ...data]);
+      setPage((prevPage) => prevPage + 1);
+      if (data.length === 0 || data.length < productsPerPage) {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.log('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    setProducts([]);
+    setPage(1);
+    setHasMore(true);
+    fetchProducts();
+  }, [categoryFilter, sortOption]); // Re-fetch products when filters change
+
+  // Observer for infinite scrolling
+  const lastProductElementRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (loading) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          fetchProducts();
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [loading, hasMore]
+  );
+
+  // Filter & sort logic
+  const featuredProducts = products.filter((product) => product.isFeatured);
   const nonFeaturedProducts = products.filter((product) => !product.isFeatured);
+
   const filteredProducts = nonFeaturedProducts.filter((product) =>
     categoryFilter === 'all' ? true : product.category === categoryFilter
   );
@@ -98,14 +127,8 @@ const App = () => {
     return 0;
   });
 
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = sortedProducts.slice(indexOfFirstProduct, indexOfLastProduct);
-  const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
-
   return (
     <div className="bg-gray-100 min-h-screen font-sans">
-      {/* Header */}
       <header className="bg-white shadow-md p-4 flex justify-between items-center rounded-b-3xl">
         <h1 className="text-xl font-bold text-gray-800">Fresh Groceries</h1>
         <div className="relative cursor-pointer" onClick={() => setShowCart(true)}>
@@ -113,10 +136,8 @@ const App = () => {
         </div>
       </header>
 
-      {/* Hero */}
       <HeroSection heroImageUrl={heroImageUrl} />
 
-      {/* Featured Products */}
       <FeaturedProducts products={featuredProducts} onAddToCart={handleAddToCart} />
 
       {/* Filters */}
@@ -143,10 +164,7 @@ const App = () => {
       </div>
 
       {/* Product Form */}
-      <form
-        onSubmit={handleFormSubmit}
-        className="p-4 bg-white shadow-md rounded-lg mx-4 mt-4"
-      >
+      <form onSubmit={handleFormSubmit} className="p-4 bg-white shadow-md rounded-lg mx-4 mt-4">
         <h2 className="text-lg font-bold mb-4">Add New Product</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <input
@@ -195,23 +213,12 @@ const App = () => {
       </form>
 
       {/* Product List */}
-      <ProductList products={currentProducts} onAddToCart={handleAddToCart} />
-
-      {/* Pagination Controls */}
-      <div className="flex justify-center mt-8">
-        {[...Array(totalPages)].map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentPage(index + 1)}
-            className={`mx-1 px-4 py-2 border rounded-lg ${
-              currentPage === index + 1 ? 'bg-green-500 text-white' : 'bg-white'
-            }`}
-          >
-            {index + 1}
-          </button>
-        ))}
-      </div>
-
+      <ProductList products={sortedProducts} onAddToCart={handleAddToCart} lastProductElementRef={lastProductElementRef} />
+      
+      {/* Loading indicator */}
+      {loading && <p className="text-center mt-4">Loading...</p>}
+      {!hasMore && <p className="text-center mt-4">No more products to load.</p>}
+      
       {/* Cart Modal */}
       {showCart && <CartModal cart={cart} onClose={() => setShowCart(false)} />}
     </div>
