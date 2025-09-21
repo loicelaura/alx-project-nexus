@@ -23,9 +23,14 @@ const App = () => {
 
   const productsPerPage = 17;
   const observer = useRef<IntersectionObserver | null>(null);
+  const productListRef = useRef<HTMLDivElement>(null);
 
   // --- Handlers ---
-
+   const handleScrollToProducts = () => {
+    if (productListRef.current) {
+      productListRef.current.scrollIntoView({ behavior: 'smooth'});
+    }
+   }
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewProduct((prev) => ({ ...prev, [name]: value }));
@@ -149,7 +154,10 @@ const App = () => {
       </header>
 
       {/* Hero */}
-      <HeroSection heroImageUrl={heroImageUrl} />
+      <HeroSection 
+      heroImageUrl={heroImageUrl}
+        onScrollToProducts={handleScrollToProducts}
+       />
 
       {/* Featured */}
       <FeaturedProducts
@@ -247,6 +255,7 @@ const App = () => {
         products={displayProducts}
         onAddToCart={handleAddToCart}
         lastProductElementRef={lastProductElementRef}
+        listRef={productListRef}
       />
 
       {loading && <p className="text-center mt-4">Loading...</p>}
