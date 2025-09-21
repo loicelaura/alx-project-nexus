@@ -7,7 +7,7 @@ import type { Product } from './types';
 
 const App = () => {
   const heroImageUrl =
-    'https://images.unsplash.com/photo-1586090643003-b2bfb4fbd833?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0';
+    'https://images.unsplash.com/photo-1586090643003-b2bfb4fbd833?q=80&w=1200&auto=format&fit=crop';
 
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<Product[]>([]);
@@ -15,16 +15,21 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // Filter & sort states
+  // Filters
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortOption, setSortOption] = useState<string>('');
 
-  // Infinite scrolling setup
-  const productsPerPage = 8;
-  const observer = useRef<IntersectionObserver>();
+  const productsPerPage = 17;
+  const observer = useRef<IntersectionObserver | null>(null);
 
-  // State for the new product form
+  // --- Handlers ---
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewProduct((prev) => ({ ...prev, [name]: value }));
+  };
   const [newProduct, setNewProduct] = useState({
     name: '',
     category: '',
@@ -32,13 +37,6 @@ const App = () => {
     image: '',
   });
 
-  // Handler for form input changes
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewProduct((prevProduct) => ({ ...prevProduct, [name]: value }));
-  };
-
-  // Handler for form submission
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
@@ -49,39 +47,47 @@ const App = () => {
 
       const res = await fetch('http://localhost:5000/groceries', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(productToAdd),
       });
 
-      if (!res.ok) {
-        throw new Error('Failed to add new product');
-      }
+      if (!res.ok) throw new Error('Failed to add new product');
 
       const addedProduct = await res.json();
-      setProducts((prevProducts) => [...prevProducts, addedProduct]);
+      setProducts((prev) => [...prev, addedProduct]);
       setNewProduct({ name: '', category: '', price: '', image: '' });
     } catch (error) {
       console.error('Error adding product:', error);
     }
   };
+
   const handleAddToCart = (product: Product) => {
     setCart((prevCart) => [...prevCart, product]);
   };
 
-  // Fetch products with pagination
-  const fetchProducts = async () => {
+  // --- Fetch Products ---
+  const fetchProducts = useCallback(async () => {
     if (loading || !hasMore) return;
     setLoading(true);
     try {
-      const res = await fetch(
-        `http://localhost:5000/groceries?_page=${page}&_limit=${productsPerPage}`
-      );
+      let url = `http://localhost:5000/groceries?_page=${page}&_limit=${productsPerPage}&q=${searchTerm}`;
+
+      if (categoryFilter !== 'all') {
+        url += `&category=${categoryFilter}`;
+      }
+
+      const res = await fetch(url);
       const data: Product[] = await res.json();
-      setProducts((prevProducts) => [...prevProducts, ...data]);
-      setPage((prevPage) => prevPage + 1);
-      if (data.length === 0 || data.length < productsPerPage) {
+
+      setProducts((prev) => {
+        const existingIds = new Set(prev.map((p) => p.id));
+        const uniqueNewProducts = data.filter((p) => !existingIds.has(p.id));
+        return [...prev, ...uniqueNewProducts];
+      });
+
+      setPage((prev) => prev + 1);
+
+      if (data.length < productsPerPage) {
         setHasMore(false);
       }
     } catch (error) {
@@ -89,82 +95,106 @@ const App = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [loading, hasMore, page, productsPerPage, searchTerm, categoryFilter]);
 
+  // Initial fetch and fetch on filter/search change
   useEffect(() => {
     setProducts([]);
     setPage(1);
     setHasMore(true);
+    // Fetch products after state reset
     fetchProducts();
-  }, [categoryFilter, sortOption]); // Re-fetch products when filters change
+  }, [categoryFilter, sortOption, searchTerm]);
 
-  // Observer for infinite scrolling
+  // --- Infinite Scroll Observer ---
   const lastProductElementRef = useCallback(
-    (node: HTMLDivElement) => {
+    (node: HTMLDivElement | null) => {
       if (loading) return;
       if (observer.current) observer.current.disconnect();
+
       observer.current = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && hasMore) {
           fetchProducts();
         }
       });
+
       if (node) observer.current.observe(node);
     },
-    [loading, hasMore]
+    [loading, hasMore, fetchProducts]
   );
 
-  // Filter & sort logic
-  const featuredProducts = products.filter((product) => product.isFeatured);
-  const nonFeaturedProducts = products.filter((product) => !product.isFeatured);
+  // --- Filtering & Sorting ---
+  const featuredProducts = products.filter((p) => p.isFeatured);
+  const nonFeaturedProducts = products.filter((p) => !p.isFeatured);
 
-  const filteredProducts = nonFeaturedProducts.filter((product) =>
-    categoryFilter === 'all' ? true : product.category === categoryFilter
-  );
+  let displayProducts = nonFeaturedProducts;
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (sortOption === 'priceLowHigh') return a.price - b.price;
-    if (sortOption === 'priceHighLow') return b.price - a.price;
-    return 0;
-  });
+  if (sortOption === 'priceLowHigh') {
+    displayProducts = [...displayProducts].sort((a, b) => a.price - b.price);
+  } else if (sortOption === 'priceHighLow') {
+    displayProducts = [...displayProducts].sort((a, b) => b.price - a.price);
+  }
 
   return (
-    <div className="bg-gray-100 min-h-screen font-sans">
+    <div className="bg-gray-100 min-h-screen font-sans max-w-7xl mx-auto p-4">
+      {/* Header */}
       <header className="bg-white shadow-md p-4 flex justify-between items-center rounded-b-3xl">
         <h1 className="text-xl font-bold text-gray-800">Fresh Groceries</h1>
-        <div className="relative cursor-pointer" onClick={() => setShowCart(true)}>
+        <div
+          className="relative cursor-pointer"
+          onClick={() => setShowCart(true)}
+        >
           🛒 {cart.length}
         </div>
       </header>
 
+      {/* Hero */}
       <HeroSection heroImageUrl={heroImageUrl} />
 
-      <FeaturedProducts products={featuredProducts} onAddToCart={handleAddToCart} />
+      {/* Featured */}
+      <FeaturedProducts
+        products={featuredProducts}
+        onAddToCart={handleAddToCart}
+      />
 
-      {/* Filters */}
-      <div className="flex justify-between items-center p-4">
-        <div>
-          <label className="mt-2">Category:</label>
-          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-            <option value="all">All</option>
-            <option value="fruits">Fruits</option>
-            <option value="vegetables">Vegetables</option>
-            <option value="dairy">Dairy</option>
-            <option value="drinks">Drinks</option>
-          </select>
-        </div>
+      {/* Filters + Search */}
+      <div className="flex justify-between items-center p-4 gap-4">
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="p-2 rounded-lg w-full max-w-sm outline-none focus:ring-2 focus:ring-green-500"
+        />
 
-        <div>
-          <label className="mr-2">Sort By:</label>
-          <select value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
-            <option value="">Default</option>
-            <option value="priceLowHigh">Price: Low → High</option>
-            <option value="priceHighLow">Price: High → Low</option>
-          </select>
-        </div>
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="p-2 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+        >
+          <option value="all">All</option>
+          <option value="fruits">Fruits</option>
+          <option value="vegetables">Vegetables</option>
+          <option value="dairy">Dairy</option>
+          <option value="drinks">Drinks</option>
+        </select>
+
+        <select
+          value={sortOption}
+          onChange={(e) => setSortOption(e.target.value)}
+          className="p-2 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+        >
+          <option value="">Default</option>
+          <option value="priceLowHigh">Price: Low → High</option>
+          <option value="priceHighLow">Price: High → Low</option>
+        </select>
       </div>
 
-      {/* Product Form */}
-      <form onSubmit={handleFormSubmit} className="p-4 bg-white shadow-md rounded-lg mx-4 mt-4">
+      {/* Add Product Form */}
+      <form
+        onSubmit={handleFormSubmit}
+        className="p-4 bg-white shadow-md rounded-lg mx-4 mt-4"
+      >
         <h2 className="text-lg font-bold mb-4">Add New Product</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <input
@@ -192,7 +222,7 @@ const App = () => {
             onChange={handleFormChange}
             placeholder="Price"
             required
-            className="p-2 border rounded"
+            className="p-2 border rounded focus:ring-green-500"
           />
           <input
             type="url"
@@ -201,7 +231,7 @@ const App = () => {
             onChange={handleFormChange}
             placeholder="Image URL"
             required
-            className="p-2 border rounded"
+            className="p-2  border rounded focus:ring-2 focus:ring-green-500"
           />
         </div>
         <button
@@ -213,13 +243,18 @@ const App = () => {
       </form>
 
       {/* Product List */}
-      <ProductList products={sortedProducts} onAddToCart={handleAddToCart} lastProductElementRef={lastProductElementRef} />
-      
-      {/* Loading indicator */}
+      <ProductList
+        products={displayProducts}
+        onAddToCart={handleAddToCart}
+        lastProductElementRef={lastProductElementRef}
+      />
+
       {loading && <p className="text-center mt-4">Loading...</p>}
-      {!hasMore && <p className="text-center mt-4">No more products to load.</p>}
-      
-      {/* Cart Modal */}
+      {!hasMore && (
+        <p className="text-center mt-4">No more products to load.</p>
+      )}
+
+      {/* Cart */}
       {showCart && <CartModal cart={cart} onClose={() => setShowCart(false)} />}
     </div>
   );

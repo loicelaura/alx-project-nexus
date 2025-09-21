@@ -5,8 +5,7 @@
       "name": "Banana",
       "category": "fruits",
       "price": 50,
-      "image": "https://images.unsplash.com/photo-1574226516831-e1dff420e43e?auto=format&fit=crop&w=400&q=80",
-      "isFeatured": true
+      "image": "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YmFuYW5hfGVufDB8fDB8fHww"
     },
     {
       "id": "2",
@@ -21,7 +20,7 @@
       "name": "Tomato",
       "category": "vegetables",
       "price": 80,
-      "image": "https://images.unsplash.com/photo-1599368364816-5b4d7f5b3a4a?q=80&w=1200",
+      "image": "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=400&q=80",
       "isFeatured": true
     },
     {
@@ -29,8 +28,7 @@
       "name": "Cabbage",
       "category": "vegetables",
       "price": 60,
-      "image": "https://images.unsplash.com/photo-1617196031132-f1d1d820d616?auto=format&fit=crop&w=400&q=80",
-      "isFeatured": true
+      "image": "https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2FiYmFnZXxlbnwwfHwwfHx8MA%3D%3D"
     },
     {
       "id": "5",
@@ -53,14 +51,86 @@
       "name": "Juice",
       "category": "drinks",
       "price": 150,
-      "image": "https://images.unsplash.com/photo-1563225400-7a7e9a0da0c2?auto=format&fit=crop&w=400&q=80"
+      "image": "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8anVpY2V8ZW58MHx8MHx8fDA%3D",
+      "isFeatured": false
     },
     {
       "id": "8",
       "name": "Soda",
       "category": "drinks",
       "price": 70,
-      "image": "https://images.unsplash.com/photo-1606813900378-0f9e2b4b6937?auto=format&fit=crop&w=400&q=80"
+      "image": "https://images.unsplash.com/photo-1588238142232-7108fb7dcbb6?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8c29kYXxlbnwwfHwwfHx8MA%3D%3D",
+      "isFeatured": false
+    },
+    {
+      "id": "9",
+      "name": "Orange",
+      "category": "fruits",
+      "price": 90,
+      "image": "https://images.unsplash.com/photo-1547514701-42782101795e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8b3JhbmdlfGVufDB8fDB8fHww",
+      "isFeatured": false
+    },
+    {
+      "id": "10",
+      "name": "Carrot",
+      "category": "vegetables",
+      "price": 70,
+      "image": "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2Fycm90fGVufDB8fDB8fHww",
+      "isFeatured": true
+    },
+    {
+      "id": "11",
+      "name": "Broccoli",
+      "category": "vegetables",
+      "price": 100,
+      "image": "https://images.unsplash.com/photo-1685504445355-0e7bdf90d415?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGJyb2NvbGxpfGVufDB8fDB8fHww",
+      "isFeatured": true
+    },
+    {
+      "id": "12",
+      "name": "Water Bottle",
+      "category": "drinks",
+      "price": 40,
+      "image": "https://images.unsplash.com/photo-1616118133712-8c947f7b822c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8d2F0ZXIlMjBib3R0bGV8ZW58MHx8MHx8fDA%3D",
+      "isFeatured": true
+    },
+    {
+      "id": "13",
+      "name": "Bread",
+      "category": "grains",
+      "price": 60,
+      "image": "https://images.unsplash.com/photo-1598373182133-52452f7691ef?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YnJlYWR8ZW58MHx8MHx8fDA%3D",
+      "isFeatured": true
+    },
+    {
+      "id": "14",
+      "name": "Rice",
+      "category": "grains",
+      "price": 300,
+      "image": "https://images.unsplash.com/photo-1686820740687-426a7b9b2043?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8cmljZXxlbnwwfHwwfHx8MA%3D%3D",
+      "isFeatured": true
+    },
+    {
+      "id": "15",
+      "name": "Pasta",
+      "category": "grains",
+      "price": 250,
+      "image": "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cGFzdGF8ZW58MHx8MHx8fDA%3D",
+      "isFeatured": true
+    },
+    {
+      "id": "16",
+      "name": "Potato Chips",
+      "category": "snacks",
+      "price": 120,
+      "image": "https://images.unsplash.com/photo-1613919113640-25732ec5e61f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8cG90YXRvJTIwY2hpcHN8ZW58MHx8MHx8fDA%3D"
+    },
+    {
+      "id": "17",
+      "name": "Chocolate",
+      "category": "snacks",
+      "price": 180,
+      "image": "https://images.unsplash.com/photo-1623660053975-cf75a8be0908?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8Y2hvY29sYXRlfGVufDB8fDB8fHww"
     }
   ]
 }

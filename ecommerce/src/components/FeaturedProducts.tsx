@@ -1,5 +1,5 @@
-import React from 'react';
-import type { Product } from '../types';
+import React from "react";
+import type { Product } from "../types";
 
 interface FeaturedProductsProps {
   products: Product[];
@@ -14,10 +14,10 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
     <div className="p-4 bg-white shadow-md rounded-lg mx-4 mt-4">
       <h2 className="text-xl font-bold mb-4">Featured Products</h2>
       <div className="flex overflow-x-auto gap-4 p-2 scrollbar-hide">
-        {products.map((product) => (
+        {products.map((product, index) => (
           <div
-            key={product.id}
-            className="flex-none w-48 bg-gray-100 rounded-lg shadow-sm p-4 text-center"
+            key={`${product.id}-${index}`} // ✅ unique key even if ids repeat
+            className="flex-none w-48 bg-gray-100 rounded-lg shadow-sm p-4 text-center hover:scale-105 transition-transform duration-300"
           >
             <img
               src={product.image}
