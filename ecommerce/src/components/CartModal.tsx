@@ -8,9 +8,10 @@ interface Product {
 interface CartModalProps {
   cart: Product[];
   onClose: () => void;
+  onCheckout: () => void;
 }
 
-const CartModal = ({ cart, onClose }: CartModalProps) => (
+const CartModal = ({ cart, onClose, onCheckout }: CartModalProps) => (
   <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
       <button
@@ -40,7 +41,9 @@ const CartModal = ({ cart, onClose }: CartModalProps) => (
             <span>Total:</span>
             <span>${cart.reduce((total, item) => total + item.price, 0).toFixed(2)}</span>
           </div>
-          <button className="w-full mt-4 bg-green-500 text-white font-bold py-3 rounded-full shadow-lg hover:bg-green-600 transition duration-300">
+          <button 
+           onClick={onCheckout}
+          className="w-full mt-4 bg-green-500 text-white font-bold py-3 rounded-full shadow-lg hover:bg-green-600 transition duration-300">
             Checkout
           </button>
         </div>

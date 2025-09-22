@@ -3,6 +3,7 @@ import HeroSection from './components/HeroSection';
 import CartModal from './components/CartModal';
 import ProductList from './components/ProductList';
 import FeaturedProducts from './components/FeaturedProducts';
+import ConfirmationPage from './components/ConfirmationPage';
 import type { Product } from './types';
 
 const App = () => {
@@ -25,12 +26,15 @@ const App = () => {
   const observer = useRef<IntersectionObserver | null>(null);
   const productListRef = useRef<HTMLDivElement>(null);
 
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [orderToConfirm, setOrderToConfirm] = useState<Product[]>([]);
+
   // --- Handlers ---
-   const handleScrollToProducts = () => {
+  const handleScrollToProducts = () => {
     if (productListRef.current) {
-      productListRef.current.scrollIntoView({ behavior: 'smooth'});
+      productListRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-   }
+  };
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewProduct((prev) => ({ ...prev, [name]: value }));
@@ -70,6 +74,10 @@ const App = () => {
     setCart((prevCart) => [...prevCart, product]);
   };
 
+  const handleGoBackToShopping = () => {
+    setShowConfirmation(false);
+  };
+
   // --- Fetch Products ---
   const fetchProducts = useCallback(async () => {
     if (loading || !hasMore) return;
@@ -101,6 +109,15 @@ const App = () => {
       setLoading(false);
     }
   }, [loading, hasMore, page, productsPerPage, searchTerm, categoryFilter]);
+
+  const handleCheckout = () => {
+    const order = [...cart];
+
+    setOrderToConfirm(order);
+    setCart([]);
+    setShowCart(false);
+    setShowConfirmation(true);
+  };
 
   // Initial fetch and fetch on filter/search change
   useEffect(() => {
@@ -142,129 +159,145 @@ const App = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen font-sans max-w-7xl mx-auto p-4">
-      {/* Header */}
-      <header className="bg-white shadow-md p-4 flex justify-between items-center rounded-b-3xl">
-        <h1 className="text-xl font-bold text-gray-800">Fresh Groceries</h1>
-        <div
-          className="relative cursor-pointer"
-          onClick={() => setShowCart(true)}
-        >
-          🛒 {cart.length}
-        </div>
-      </header>
-
-      {/* Hero */}
-      <HeroSection 
-      heroImageUrl={heroImageUrl}
-        onScrollToProducts={handleScrollToProducts}
-       />
-
-      {/* Featured */}
-      <FeaturedProducts
-        products={featuredProducts}
-        onAddToCart={handleAddToCart}
-      />
-
-      {/* Filters + Search */}
-      <div className="flex justify-between items-center p-4 gap-4">
-        <input
-          type="text"
-          placeholder="Search products..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="p-2 rounded-lg w-full max-w-sm outline-none focus:ring-2 focus:ring-green-500"
+      {/* Conditional rendering for the confirmation page */}
+      {showConfirmation ? (
+        <ConfirmationPage
+          order={orderToConfirm}
+          total={orderToConfirm.reduce((sum, item) => sum + item.price, 0)}
+          onGoBackToShopping={handleGoBackToShopping}
         />
+      ) : (
+        <>
+          {/* Header */}
+          <header className="bg-white shadow-md p-4 flex justify-between items-center rounded-b-3xl mb-6">
+            <h1 className="text-xl font-bold text-gray-800">Fresh Groceries</h1>
+            <div
+              className="relative p-2 bg-gray-200 rounded-full cursor-pointer transition-colors duration-300 hover:bg-gray-300"
+              onClick={() => setShowCart(true)}
+            >
+              🛒{' '}
+              <span className="text-gray-800 font-semibold">{cart.length}</span>
+            </div>
+          </header>
 
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="p-2 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
-        >
-          <option value="all">All</option>
-          <option value="fruits">Fruits</option>
-          <option value="vegetables">Vegetables</option>
-          <option value="dairy">Dairy</option>
-          <option value="drinks">Drinks</option>
-        </select>
-
-        <select
-          value={sortOption}
-          onChange={(e) => setSortOption(e.target.value)}
-          className="p-2 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
-        >
-          <option value="">Default</option>
-          <option value="priceLowHigh">Price: Low → High</option>
-          <option value="priceHighLow">Price: High → Low</option>
-        </select>
-      </div>
-
-      {/* Add Product Form */}
-      <form
-        onSubmit={handleFormSubmit}
-        className="p-4 bg-white shadow-md rounded-lg mx-4 mt-4"
-      >
-        <h2 className="text-lg font-bold mb-4">Add New Product</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <input
-            type="text"
-            name="name"
-            value={newProduct.name}
-            onChange={handleFormChange}
-            placeholder="Product Name"
-            required
-            className="p-2 border rounded"
+          {/* Hero */}
+          <HeroSection
+            heroImageUrl={heroImageUrl}
+            onScrollToProducts={handleScrollToProducts}
           />
-          <input
-            type="text"
-            name="category"
-            value={newProduct.category}
-            onChange={handleFormChange}
-            placeholder="Category (e.g., fruits)"
-            required
-            className="p-2 border rounded"
-          />
-          <input
-            type="number"
-            name="price"
-            value={newProduct.price}
-            onChange={handleFormChange}
-            placeholder="Price"
-            required
-            className="p-2 border rounded focus:ring-green-500"
-          />
-          <input
-            type="url"
-            name="image"
-            value={newProduct.image}
-            onChange={handleFormChange}
-            placeholder="Image URL"
-            required
-            className="p-2  border rounded focus:ring-2 focus:ring-green-500"
-          />
-        </div>
-        <button
-          type="submit"
-          className="mt-4 w-full p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-        >
-          Add Product
-        </button>
-      </form>
 
-      {/* Product List */}
-      <ProductList
-        products={displayProducts}
-        onAddToCart={handleAddToCart}
-        lastProductElementRef={lastProductElementRef}
-        listRef={productListRef}
-      />
+          {/* Featured */}
+          <FeaturedProducts
+            products={featuredProducts}
+            onAddToCart={handleAddToCart}
+          />
 
-      {loading && <p className="text-center mt-4">Loading...</p>}
-      {!hasMore && (
-        <p className="text-center mt-4">No more products to load.</p>
+          {/* Filters + Search */}
+          <div className="flex justify-between items-center p-4 gap-4">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="p-2 rounded-lg w-full max-w-sm outline-none focus:ring-2 focus:ring-green-500"
+            />
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="p-2 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value="all">All</option>
+              <option value="fruits">Fruits</option>
+              <option value="vegetables">Vegetables</option>
+              <option value="dairy">Dairy</option>
+              <option value="drinks">Drinks</option>
+            </select>
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+              className="p-2 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value="">Default</option>
+              <option value="priceLowHigh">Price: Low → High</option>
+              <option value="priceHighLow">Price: High → Low</option>
+            </select>
+          </div>
+
+          {/* Add Product Form */}
+          <form
+            onSubmit={handleFormSubmit}
+            className="p-4 bg-white shadow-md rounded-lg mx-4 mt-4"
+          >
+            <h2 className="text-lg font-bold mb-4">Add New Product</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <input
+                type="text"
+                name="name"
+                value={newProduct.name}
+                onChange={handleFormChange}
+                placeholder="Product Name"
+                required
+                className="p-2 border rounded"
+              />
+              <input
+                type="text"
+                name="category"
+                value={newProduct.category}
+                onChange={handleFormChange}
+                placeholder="Category (e.g., fruits)"
+                required
+                className="p-2 border rounded"
+              />
+              <input
+                type="number"
+                name="price"
+                value={newProduct.price}
+                onChange={handleFormChange}
+                placeholder="Price"
+                required
+                className="p-2 border rounded focus:ring-green-500"
+              />
+              <input
+                type="url"
+                name="image"
+                value={newProduct.image}
+                onChange={handleFormChange}
+                placeholder="Image URL"
+                required
+                className="p-2 border rounded focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            <button
+              type="submit"
+              className="mt-4 w-full p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+            >
+              Add Product
+            </button>
+          </form>
+
+          {/* Product List */}
+          <ProductList
+            products={displayProducts}
+            onAddToCart={handleAddToCart}
+            lastProductElementRef={lastProductElementRef}
+            listRef={productListRef}
+          />
+
+          {loading && <p className="text-center mt-4">Loading...</p>}
+          {!hasMore && (
+            <p className="text-center mt-4">No more products to load.</p>
+          )}
+
+          {/* Cart */}
+          {showCart && (
+            <CartModal
+              cart={cart}
+              onClose={() => setShowCart(false)}
+              onCheckout={handleCheckout}
+            />
+          )}
+        </>
       )}
-
-      {/* Cart */}
-      {showCart && <CartModal cart={cart} onClose={() => setShowCart(false)} />}
     </div>
   );
 };

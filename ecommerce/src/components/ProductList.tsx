@@ -23,7 +23,7 @@ const ProductList: React.FC<ProductListProps> = ({
           <div
             key={product.id}
             ref={isLast ? lastProductElementRef : null}
-            className="bg-white shadow rounded-lg overflow-hidden"
+            className="bg-white shadow rounded-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-xl"
           >
             <img
               src={product.image}
