@@ -32,7 +32,7 @@ Make sure you have the following installed:
 * **Node.js**: [https://nodejs.org/](https://nodejs.org/) (version 14 or higher)
 * **npm** (comes with Node.js) or **yarn**
 
-### Step 1: Clone the Repository
+### Clone the Repository
 
 Clone this repository to your local machine using a terminal or command prompt:
 ```bash
