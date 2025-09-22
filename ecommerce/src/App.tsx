@@ -83,7 +83,7 @@ const App = () => {
     if (loading || !hasMore) return;
     setLoading(true);
     try {
-      let url = `http://localhost:5000/groceries?_page=${page}&_limit=${productsPerPage}&q=${searchTerm}`;
+      let url = `http://localhost:5000/groceries?_page=${page}&_limit=${productsPerPage}&q=${searchTerm.toLowerCase()}`;
 
       if (categoryFilter !== 'all') {
         url += `&category=${categoryFilter}`;
