@@ -13,7 +13,7 @@ const ConfirmationPage: React.FC<ConfirmationPageProps> = ({ order, total, onGoB
     // Set a timeout to automatically redirect after 5 seconds
     const timer = setTimeout(() => {
       onGoBackToShopping();
-    },5000); // 5000 milliseconds = 5 seconds
+    },50000); 
 
     // Clean up the timer when the component unmounts
     return () => clearTimeout(timer);

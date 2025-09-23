@@ -29,22 +29,23 @@ const App = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [orderToConfirm, setOrderToConfirm] = useState<Product[]>([]);
 
-  // --- Handlers ---
   const handleScrollToProducts = () => {
     if (productListRef.current) {
       productListRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewProduct((prev) => ({ ...prev, [name]: value }));
-  };
+
   const [newProduct, setNewProduct] = useState({
     name: '',
     category: '',
     price: '',
     image: '',
   });
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewProduct((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -78,57 +79,60 @@ const App = () => {
     setShowConfirmation(false);
   };
 
-  // --- Fetch Products ---
   const fetchProducts = useCallback(async () => {
     if (loading || !hasMore) return;
     setLoading(true);
+
     try {
-      let url = `http://localhost:5000/groceries?_page=${page}&_limit=${productsPerPage}&q=${searchTerm.toLowerCase()}`;
+        const res = await fetch(`/groceries.json`);
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        
+        // Correctly access the 'groceries' array from the fetched data
+        const allProducts = data.groceries; 
 
-      if (categoryFilter !== 'all') {
-        url += `&category=${categoryFilter}`;
-      }
-
-      const res = await fetch(url);
-      const data: Product[] = await res.json();
-
-      setProducts((prev) => {
-        const existingIds = new Set(prev.map((p) => p.id));
-        const uniqueNewProducts = data.filter((p) => !existingIds.has(p.id));
-        return [...prev, ...uniqueNewProducts];
-      });
-
-      setPage((prev) => prev + 1);
-
-      if (data.length < productsPerPage) {
-        setHasMore(false);
-      }
+        const filteredAndSortedProducts = allProducts
+            .filter((p: Product) => {
+                const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
+                const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+                return matchesCategory && matchesSearch;
+            })
+            .sort((a: Product, b: Product) => {
+                if (sortOption === 'priceLowHigh') {
+                    return a.price - b.price;
+                } else if (sortOption === 'priceHighLow') {
+                    return b.price - a.price;
+                }
+                return 0;
+            });
+        
+        setProducts(filteredAndSortedProducts);
+        setHasMore(filteredAndSortedProducts.length > 0);
+        
     } catch (error) {
-      console.log('Error fetching products:', error);
+        console.error('Error fetching products:', error);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  }, [loading, hasMore, page, productsPerPage, searchTerm, categoryFilter]);
+}, [loading, hasMore, page, productsPerPage, searchTerm, categoryFilter, sortOption]);
 
   const handleCheckout = () => {
     const order = [...cart];
-
     setOrderToConfirm(order);
     setCart([]);
     setShowCart(false);
     setShowConfirmation(true);
   };
 
-  // Initial fetch and fetch on filter/search change
   useEffect(() => {
     setProducts([]);
     setPage(1);
     setHasMore(true);
-    // Fetch products after state reset
     fetchProducts();
   }, [categoryFilter, sortOption, searchTerm]);
 
-  // --- Infinite Scroll Observer ---
   const lastProductElementRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (loading) return;
@@ -139,27 +143,17 @@ const App = () => {
           fetchProducts();
         }
       });
-
       if (node) observer.current.observe(node);
     },
     [loading, hasMore, fetchProducts]
   );
 
-  // --- Filtering & Sorting ---
-  const featuredProducts = products.filter((p) => p.isFeatured);
-  const nonFeaturedProducts = products.filter((p) => !p.isFeatured);
-
-  let displayProducts = nonFeaturedProducts;
-
-  if (sortOption === 'priceLowHigh') {
-    displayProducts = [...displayProducts].sort((a, b) => a.price - b.price);
-  } else if (sortOption === 'priceHighLow') {
-    displayProducts = [...displayProducts].sort((a, b) => b.price - a.price);
-  }
+  const slicedProducts = products.slice(0, page * productsPerPage);
+  const featuredProducts = slicedProducts.filter((p) => p.isFeatured);
+  const nonFeaturedProducts = slicedProducts.filter((p) => !p.isFeatured);
 
   return (
     <div className="bg-gray-100 min-h-screen font-sans max-w-7xl mx-auto p-4">
-      {/* Conditional rendering for the confirmation page */}
       {showConfirmation ? (
         <ConfirmationPage
           order={orderToConfirm}
@@ -168,7 +162,6 @@ const App = () => {
         />
       ) : (
         <>
-          {/* Header */}
           <header className="bg-white shadow-md p-4 flex justify-between items-center rounded-b-3xl mb-6">
             <h1 className="text-xl font-bold text-gray-800">Fresh Groceries</h1>
             <div
@@ -180,19 +173,13 @@ const App = () => {
             </div>
           </header>
 
-          {/* Hero */}
           <HeroSection
             heroImageUrl={heroImageUrl}
             onScrollToProducts={handleScrollToProducts}
           />
 
-          {/* Featured */}
-          <FeaturedProducts
-            products={featuredProducts}
-            onAddToCart={handleAddToCart}
-          />
+          <FeaturedProducts products={featuredProducts} onAddToCart={handleAddToCart} />
 
-          {/* Filters + Search */}
           <div className="flex justify-between items-center p-4 gap-4">
             <input
               type="text"
@@ -223,7 +210,6 @@ const App = () => {
             </select>
           </div>
 
-          {/* Add Product Form */}
           <form
             onSubmit={handleFormSubmit}
             className="p-4 bg-white shadow-md rounded-lg mx-4 mt-4"
@@ -275,9 +261,8 @@ const App = () => {
             </button>
           </form>
 
-          {/* Product List */}
           <ProductList
-            products={displayProducts}
+            products={nonFeaturedProducts}
             onAddToCart={handleAddToCart}
             lastProductElementRef={lastProductElementRef}
             listRef={productListRef}
@@ -288,7 +273,6 @@ const App = () => {
             <p className="text-center mt-4">No more products to load.</p>
           )}
 
-          {/* Cart */}
           {showCart && (
             <CartModal
               cart={cart}

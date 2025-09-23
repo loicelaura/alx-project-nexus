@@ -7,7 +7,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tailwindcss-init": "tailwindcss init -p",
-    "json-server": "json-server --watch groceries.json --port 5000",
+    "json-server": "json-server --watch ./public/groceries.json --port 5000",
     "vite": "vite"
   },
   "dependencies": {

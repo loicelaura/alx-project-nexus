@@ -138,6 +138,27 @@
       "category": "fruit",
       "price": 14,
       "image": "https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bWFuZ298ZW58MHx8MHx8fDA%3D"
+    },
+    {
+      "id": "a6c5",
+      "name": "grapes",
+      "category": "fruit",
+      "price": 10,
+      "image": "https://images.unsplash.com/photo-1596363505729-4190a9506133?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z3JhcGVzfGVufDB8fDB8fHww"
+    },
+    {
+      "id": "ba85",
+      "name": "grapes",
+      "category": "fruit",
+      "price": 20,
+      "image": "https://images.unsplash.com/photo-1596363505729-4190a9506133?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z3JhcGVzfGVufDB8fDB8fHww"
+    },
+    {
+      "id": "bb06",
+      "name": "kales",
+      "category": "vegetable",
+      "price": 20,
+      "image": "https://images.unsplash.com/photo-1668717066198-53148ca2b11b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8a2FsZXN8ZW58MHx8MHx8fDA%3D"
     }
   ]
 }
